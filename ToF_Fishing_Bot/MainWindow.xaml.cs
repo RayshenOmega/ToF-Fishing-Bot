@@ -8,6 +8,8 @@ using WindowsHook;
 using System.Drawing;
 using Config.Net;
 using System.Threading;
+using System.Diagnostics;
+using System.Linq;
 
 namespace ToF_Fishing_Bot
 {
@@ -60,7 +62,8 @@ namespace ToF_Fishing_Bot
                 middleBarImage, 
                 cursorImage, 
                 FishStaminaColorBtn, 
-                PlayerStaminaColorBtn);
+                PlayerStaminaColorBtn,
+                null);
             fishBotThread = new Thread(fishBot.Start);
         }
 
@@ -296,13 +299,16 @@ namespace ToF_Fishing_Bot
         {
             if(SanityCheck())
             {
-                if (!fishBot.isRunning)
+                // Find Game Handle
+                var gameHandle = GetGameHandle();
+                if (!fishBot.isRunning && gameHandle != null)
                 {
                     fishBot.isRunning = true;
                     StartLabel.Text = "Stop\nFishing";
                     if (!fishBotThread.IsAlive)
                     {
                         fishBot.lastMousePosition = mousePositionWithLeftClick;
+                        fishBot.GameHandle = gameHandle.Value;
                         fishBotThread.Start();
                     }
                 }
@@ -320,10 +326,35 @@ namespace ToF_Fishing_Bot
                         middleBarImage,
                         cursorImage,
                         FishStaminaColorBtn,
-                        PlayerStaminaColorBtn);
+                        PlayerStaminaColorBtn,
+                        gameHandle);
                     fishBotThread = new Thread(fishBot.Start);
                 }
             }
+        }
+
+        private IntPtr? GetGameHandle()
+        {
+            var message = "";
+            var noErrors = true;
+
+            Process[] processes = Process.GetProcessesByName("QRSL");
+
+            if (processes.Length == 0)
+            {
+                message = "Failed to find Game. Either it's not running or the tool is not ran as admin";
+            } else if (processes.Length > 1)
+            {
+                message = "Found more than one instance of Game. This is not normal";
+            }
+
+            if (!noErrors)
+            {
+                MessageBox.Show(message, "Game Hook Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                return null;
+            }
+
+            return processes.First().MainWindowHandle;
         }
 
         private bool SanityCheck()

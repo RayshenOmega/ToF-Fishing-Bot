@@ -59,6 +59,8 @@ namespace ToF_Fishing_Bot
         private DispatcherTimer ResetDelay;
         private FishingState state;
 
+        public IntPtr GameHandle;
+
         public FishingThread(
             IAppSettings _settings, 
             System.Windows.Shapes.Rectangle _left, 
@@ -69,7 +71,8 @@ namespace ToF_Fishing_Bot
             System.Windows.Controls.Image _middleBarImage,
             System.Windows.Controls.Image _cursorImage,
             System.Windows.Controls.Button _fishStaminaButton,
-            System.Windows.Controls.Button _playerStaminaButton)
+            System.Windows.Controls.Button _playerStaminaButton,
+            IntPtr? _gameHandle)
         {
             settings = _settings;
             left = _left;
@@ -88,6 +91,11 @@ namespace ToF_Fishing_Bot
             ms2 = new MemoryStream();
             dis = Dispatcher.CurrentDispatcher;
             state = FishingState.NotFishing;
+
+            if (_gameHandle.HasValue)
+            {
+                GameHandle = _gameHandle.Value;
+            }
 
             /*upperLeftSource = new System.Drawing.Point(
                 settings.UpperLeftBarPoint_X,
@@ -278,8 +286,10 @@ namespace ToF_Fishing_Bot
             {
                 if (!DPressed)
                 {
-                    InputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_D);
-                    InputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_A);
+                    InputSimulator.Keyboard.KeyUpBackground(GameHandle, WindowsInput.Native.VirtualKeyCode.VK_A);
+                    InputSimulator.Keyboard.KeyDownBackground(GameHandle, WindowsInput.Native.VirtualKeyCode.VK_D);
+                    /*InputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_D);
+                    InputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_A);*/
                     DPressed = true;
                     APressed = false;
 
@@ -297,8 +307,10 @@ namespace ToF_Fishing_Bot
             {
                 if (!APressed)
                 {
-                    InputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_A);
-                    InputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_D);
+                    InputSimulator.Keyboard.KeyUpBackground(GameHandle, WindowsInput.Native.VirtualKeyCode.VK_D);
+                    InputSimulator.Keyboard.KeyDownBackground(GameHandle, WindowsInput.Native.VirtualKeyCode.VK_A);
+                    /*InputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_A);
+                    InputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_D);*/
                     DPressed = false;
                     APressed = true;
 
@@ -316,7 +328,8 @@ namespace ToF_Fishing_Bot
             {
                 if (APressed)
                 {
-                    InputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_A);
+                    InputSimulator.Keyboard.KeyUpBackground(GameHandle, WindowsInput.Native.VirtualKeyCode.VK_A);
+                    /*InputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_A);*/
                     APressed = false;
                     left.Dispatcher.Invoke(() =>
                     {
@@ -325,7 +338,8 @@ namespace ToF_Fishing_Bot
                 }
                 if (DPressed)
                 {
-                    InputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_D);
+                    InputSimulator.Keyboard.KeyUpBackground(GameHandle, WindowsInput.Native.VirtualKeyCode.VK_D);
+                    /*InputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_D);*/
                     DPressed = false;
                     right.Dispatcher.Invoke(() =>
                     {
@@ -458,28 +472,38 @@ namespace ToF_Fishing_Bot
 
         public void ClickFishCaptureButton()
         {
-            SetCursorPos(settings.FishCaptureButtonPoint_X, settings.FishCaptureButtonPoint_Y);
+            /*SetCursorPos(settings.FishCaptureButtonPoint_X, settings.FishCaptureButtonPoint_Y);
             InputSimulator.Mouse.Sleep(25);
-            InputSimulator.Mouse.LeftButtonClick();
+            InputSimulator.Mouse.LeftButtonClick();*/
+            InputSimulator.Mouse.LeftButtonDownBackground(GameHandle, settings.FishCaptureButtonPoint_X, settings.FishCaptureButtonPoint_Y);
+            InputSimulator.Mouse.Sleep(25);
+            InputSimulator.Mouse.LeftButtonUpBackground(GameHandle, settings.FishCaptureButtonPoint_X, settings.FishCaptureButtonPoint_Y);
+            InputSimulator.Mouse.Sleep(25);
         }
 
         public void ClickTapToCloseButton()
         {
-            SetCursorPos(settings.TapToClosePoint_X, settings.TapToClosePoint_Y);
+            /*SetCursorPos(settings.TapToClosePoint_X, settings.TapToClosePoint_Y);
             InputSimulator.Mouse.Sleep(25);
-            InputSimulator.Mouse.LeftButtonClick();
+            InputSimulator.Mouse.LeftButtonClick();*/
+            InputSimulator.Mouse.LeftButtonDownBackground(GameHandle, settings.TapToClosePoint_X, settings.TapToClosePoint_Y);
+            InputSimulator.Mouse.Sleep(25);
+            InputSimulator.Mouse.LeftButtonUpBackground(GameHandle, settings.TapToClosePoint_X, settings.TapToClosePoint_Y);
+            InputSimulator.Mouse.Sleep(25);
         }
 
         public void ResetKeys()
         {
-            InputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_A);
+            InputSimulator.Keyboard.KeyUpBackground(GameHandle, WindowsInput.Native.VirtualKeyCode.VK_A);
+            /*InputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_A);*/
             APressed = false;
             left.Dispatcher.Invoke(() =>
             {
                 left.Fill = System.Windows.Media.Brushes.Transparent;
             });
 
-            InputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_D);
+            InputSimulator.Keyboard.KeyUpBackground(GameHandle, WindowsInput.Native.VirtualKeyCode.VK_D);
+            /*InputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_D);*/
             DPressed = false;
             right.Dispatcher.Invoke(() =>
             {
